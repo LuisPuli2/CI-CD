@@ -1,0 +1,53 @@
+name: Deploy to staging on merge staging branch
+'on':
+  push:
+    branches:
+  # add all stage branches
+      - staging
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: 'staging'
+      API_GATEWAY_ID: '${{ secrets.STAG_API_GATEWAY_ID }}'
+      API_GATEWAY_RESOURCE_ID: '${{ secrets.STAG_API_GATEWAY_RESOURCE_ID }}'
+      BASIC_AUTH_USERNAME: '${{ secrets.STAG_BASIC_AUTH_USERNAME }}'
+      BASIC_AUTH_PASSWORD: '${{ secrets.STAG_BASIC_AUTH_PASSWORD }}'
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: Creating env file
+      run: | 
+        cat > .env << EOF
+        API_GATEWAY_ID='${{ env.API_GATEWAY_ID }}'
+        API_GATEWAY_RESOURCE_ID='${{ env.API_GATEWAY_RESOURCE_ID }}'
+        ENVIRONMENT='${{ env.ENVIRONMENT }}'
+        BASIC_AUTH_USERNAME='${{ env.BASIC_AUTH_USERNAME }}'
+        BASIC_AUTH_PASSWORD='${{ env.BASIC_AUTH_PASSWORD }}'
+        EOF
+    - name: Install Serverless Framework
+      run: npm install -g serverless@2.21.0
+    - name: Install NPM dependencies
+      run: npm install
+    - name: Install newman
+      run: npm install -g newman
+    - name: Run Unit Tests
+      run: yarn test
+    - name: Run sls-offline
+      run: yarn dev &
+    - name: printenv
+      run: printenv
+    - name: Run Integration Tests
+      run: newman run ./integrations/ServerlessTemplate.postman_collection.json -e ./integrations/dev.postman_environment.json
+    - name: Deploy Lambda functions
+      # run: sls config credentials --provider aws --key ${{ secrets.STAG_AWS_ACCESS_KEY_ID }} --secret ${{ secrets.STAG_AWS_SECRET_ACCESS_KEY }} && yarn deploy_dev
+      uses: serverless/github-action@master
+      with:
+        args: 'deploy --stage staging --env staging'
+      env:
+       SERVERLESS_ACCESS_KEY: ${{ secrets.STAG_SERVERLESS_ACCESS_KEY }}
+        # or if using AWS credentials directly
+       AWS_ACCESS_KEY_ID: ${{ secrets.STAG_AWS_ACCESS_KEY_ID }}
+       AWS_SECRET_ACCESS_KEY: ${{ secrets.STAG_AWS_SECRET_ACCESS_KEY }}

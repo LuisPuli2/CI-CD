@@ -1,0 +1,81 @@
+{
+	"info": {
+		"_postman_id": "567410ce-7e5c-4c8a-94b0-bd964f3b456f",
+		"name": "ServerlessTemplate",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Test Serverless Endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic dXNlcjpzZWNyZXQ=",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{serverlessTemplateHost}}/demo-serverless",
+					"host": [
+						"{{serverlessTemplateHost}}"
+					],
+					"path": [
+						"demo-serverless"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test Serverless Unit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Response value is correct\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"error Message\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{serverlessTemplateHost}}/unit-demo-serverless",
+					"host": [
+						"{{serverlessTemplateHost}}"
+					],
+					"path": [
+						"unit-demo-serverless"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
